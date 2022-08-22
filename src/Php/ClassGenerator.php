@@ -7,6 +7,7 @@ use GoetasWebservices\Xsd\XsdToPhp\Php\Structure\PHPClass;
 use GoetasWebservices\Xsd\XsdToPhp\Php\Structure\PHPClassOf;
 use GoetasWebservices\Xsd\XsdToPhp\Php\Structure\PHPProperty;
 use Laminas\Code\Generator;
+use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
 use Laminas\Code\Generator\DocBlock\Tag\ReturnTag;
 use Laminas\Code\Generator\DocBlock\Tag\VarTag;
@@ -152,11 +153,11 @@ class ClassGenerator
                 }
             } else {
                 $patramTag->setTypes($type->getPhpType());
-                $parameter->setType(($prop->getNullable() ? '?' : '') . $type->getPhpType());
+                $parameter->setType(($prop->getNullable() || $prop->getOptional() ? '?' : '') . $type->getPhpType());
             }
         }
 
-        if ($prop->getNullable() && $parameter->getType()) {
+        if (($prop->getOptional() || $prop->getNullable()) && $parameter->getType()) {
             $parameter->setDefaultValue(null);
         }
 
@@ -325,10 +326,11 @@ class ClassGenerator
         if ($prop->getDoc()) {
             $docBlock->setLongDescription($prop->getDoc());
         }
+
         $tag = new VarTag($prop->getName(), 'mixed');
-
+        
         $type = $prop->getType();
-
+        
         if ($type && $type instanceof PHPClassOf) {
             $tt = $type->getArg()->getType();
             $tag->setTypes($tt->getPhpType() . '[]');
@@ -347,7 +349,14 @@ class ClassGenerator
                 $tag->setTypes($prop->getType()->getPhpType());
             }
         }
-        $docBlock->setTag($tag);
+
+        $tags = [$tag];
+        if ($prop->getOptional()) {
+            $tags[] = new GenericTag('SkipWhenEmpty', null);
+            $class->addUse(\JMS\Serializer\Annotation\SkipWhenEmpty::class);
+        }
+
+        $docBlock->setTags($tags);
     }
 
     public function generate(PHPClass $type)

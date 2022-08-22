@@ -415,6 +415,9 @@ class PhpConverter extends AbstractConverter
         if ($element->isNil() || $element->getMin() === 0) {
             $property->setNullable(true);
         }
+        if ($element->isOptional()) {
+            $property->setOptional(true);
+        }
 
         $t = $element->getType();
 

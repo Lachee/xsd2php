@@ -12,6 +12,8 @@ class PHPArg
 
     protected $nullable = false;
     
+    protected $optional = false;
+
     protected $default;
 
     public function __construct($name = null, $type = null)
@@ -71,6 +73,15 @@ class PHPArg
         return $this;
     }
     
+    public function getOptional() {
+        return $this->optional;
+    }
+
+    public function setOptional($optional) {
+        $this->optional = $optional;
+        return $this;
+    }
+
     public function getDefault()
     {
         return $this->default;
